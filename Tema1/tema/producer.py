@@ -47,7 +47,7 @@ class Producer(Thread):
             for product in self.products:
                 count = product[1]
                 waiting_time = product[2]
-                for i in range(count):
+                for _ in range(count):
                     while True:
                         # daca s-a putut face publicarea, trec la urmatoarea publicare
                         if self.marketplace.publish(producer_id, product[0]):

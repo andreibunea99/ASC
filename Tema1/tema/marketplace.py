@@ -42,8 +42,10 @@ class Marketplace:
         """
         Returns an id for the producer that calls this.
         """
-        self.producer_buffers.append([])  # adaug o lista noua care sa reprezinte bufferului producerului inregistrat
-        with self.producer_lock:  # evit posibilitatea de a atribui acelasi id pentru mai multi producatori
+        # adaug o lista noua care sa reprezinte bufferului producerului inregistrat
+        self.producer_buffers.append([])
+        # evit posibilitatea de a atribui acelasi id pentru mai multi producatori
+        with self.producer_lock:
             my_id = self.total_producers
             self.total_producers += 1
         return my_id
@@ -101,7 +103,8 @@ class Marketplace:
 
             # daca a fost gasit un producator, adaug produsul in cos
             if producer != -1:
-                # adaug o lista de tipul [produs, producer] pentru a retine producatorul de la care am luat produsul
+                # adaug o lista de tipul [produs, producer] pentru a retine
+                # producatorul de la care am luat produsul
                 self.consumer_carts[cart_id].append([product, producer])
                 self.producer_buffers[producer].remove(product)
                 return True

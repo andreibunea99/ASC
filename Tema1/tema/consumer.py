@@ -51,7 +51,7 @@ class Consumer(Thread):
                 product = entry["product"]
                 quantity = entry["quantity"]
 
-                for i in range(quantity):
+                for _ in range(quantity):
                     if action_type == "add":
                         while True:
                             # daca adaugarea in cos a avut succes trec la urmatoarea adaugare
