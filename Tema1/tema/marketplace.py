@@ -14,14 +14,13 @@ class Marketplace:
     The producers and consumers use its methods concurrently.
     """
     queue_size_per_producer = 0
-    total_producers = 0
-    total_carts = 0
-    producer_buffers = []
-    consumer_carts = []
+    total_producers = 0  # numarul total de producers
+    total_carts = 0  # numarul total de cart-uri
+    producer_buffers = []  # bufferul cu produse generate de fiecare produser
+    consumer_carts = []  # cart-ul fiecarul consumer
     producer_lock = None
     consumer_lock = None
     add_lock = None
-    remove_lock = None
     checkout_lock = None
     cart_lock = None
 
@@ -36,7 +35,6 @@ class Marketplace:
         self.producer_lock = Lock()
         self.consumer_lock = Lock()
         self.add_lock = Lock()
-        self.remove_lock = Lock()
         self.checkout_lock = Lock()
         self.cart_lock = Lock()
 
@@ -44,8 +42,8 @@ class Marketplace:
         """
         Returns an id for the producer that calls this.
         """
-        self.producer_buffers.append([])
-        with self.producer_lock:
+        self.producer_buffers.append([])  # adaug o lista noua care sa reprezinte bufferului producerului inregistrat
+        with self.producer_lock:  # evit posibilitatea de a atribui acelasi id pentru mai multi producatori
             my_id = self.total_producers
             self.total_producers += 1
         return my_id
@@ -64,6 +62,7 @@ class Marketplace:
         """
         if len(self.producer_buffers[producer_id]) == self.queue_size_per_producer:
             return False
+        # daca dimensiunea permite, adaug produsul in bufferul producatorului
         self.producer_buffers[producer_id].append(product)
         return True
 
@@ -73,7 +72,7 @@ class Marketplace:
 
         :returns an int representing the cart_id
         """
-        with self.cart_lock:
+        with self.cart_lock:  # evit atribuirea aceluiasi cart pentru mai multi consumatori
             my_id = self.total_carts
             self.consumer_carts.append([])
             self.total_carts += 1
@@ -93,13 +92,16 @@ class Marketplace:
         """
 
         producer = -1
-        with self.add_lock:
+        with self.add_lock:  # evit adaugarea aceluiasi produs de catre mai multi consumatori
+            # caut primul producator care are acel produs
             for i in range(len(self.producer_buffers)):
                 if product in self.producer_buffers[i]:
                     producer = i
                     break
 
+            # daca a fost gasit un producator, adaug produsul in cos
             if producer != -1:
+                # adaug o lista de tipul [produs, producer] pentru a retine producatorul de la care am luat produsul
                 self.consumer_carts[cart_id].append([product, producer])
                 self.producer_buffers[producer].remove(product)
                 return True
@@ -115,18 +117,19 @@ class Marketplace:
         :type product: Product
         :param product: the product to remove from cart
         """
-        with self.remove_lock:
-            producer = -1
-            for entry in self.consumer_carts[cart_id]:
-                if entry[0] == product:
-                    producer = entry[1]
-                    break
+        producer = -1
+        # caut in cart o pereche produs - producer si retin producatorul
+        for entry in self.consumer_carts[cart_id]:
+            if entry[0] == product:
+                producer = entry[1]
+                break
 
-            if producer == -1:
-                return
+        if producer == -1:
+            return
 
-            self.consumer_carts[cart_id].remove([product, producer])
-            self.producer_buffers[producer].append(product)
+        # daca am gasit o astfel pereche, scot din cart si pun produsul in bufferul producatorului
+        self.consumer_carts[cart_id].remove([product, producer])
+        self.producer_buffers[producer].append(product)
 
     def place_order(self, cart_id):
         """
@@ -135,6 +138,8 @@ class Marketplace:
         :type cart_id: Int
         :param cart_id: id cart
         """
+        # scot intr-o ista toate produsele din cart
+        # produsele se afla pe pozitia 0 din perechile [produs, producator] din cart
         output_list = []
         for pair in self.consumer_carts[cart_id]:
             output_list.append(pair[0])

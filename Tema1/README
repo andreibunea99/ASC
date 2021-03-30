@@ -1,0 +1,22 @@
+@Copyright Bunea Andrei-Alexandru, 334CA
+
+producer.py: cat timp continua executia programului, pentru fiecare produs apelez functia publish de atatea ori cat
+             are cantitatea, iar in cazul in care nu se poate face publicarea incerc dupa ce trece un timp de
+             republish time
+
+consumer.py: pentru fiecare cart, parcurg requesturile, obtin tipul operatiei, produsul si cantitatea si apelez
+             functiile add_to_cart sau remove_from_cart, dupa caz, cu un timp retry_wait_time intre apeluri in cazul
+             in care operatia nu a putut fi indeplinita
+
+marketplace.py:
+                register_producer: atribui in mod unic un id in functie de numarul total curent de producatori
+                publish: daca bufferul de produse nu este plin adaug produsul in bufferul de produse ale producatorului
+                new_cart: atribui in mod unic un id in functie de numarul total curent de carturi
+                add_to_cart: caut produsul in bufferele producatorilor si il adaug in cart sub forma unei liste cu
+                             2 elemente [produs,producator], evitand adaugarea aceluiasi produs de catre mai multi
+                             consumatori printr-un lock.
+                remove_from_cart: caut in lista de perechi a cartului o lista care sa aiba pe prima pozitie produsul.
+                                  Scot apoi acea intrare din lista cartului si adaug produsul in bufferul de produse al
+                                  producatorului corespondent.
+                place_order: Scot lista de produse parcurgand lista cartului, adaugand produsul care se afla pe prima
+                             pozitie din perechile de tip [produs, producator].
